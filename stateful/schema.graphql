@@ -1,0 +1,12 @@
+schema{
+    mutation: Mutation
+}
+
+type Entry{
+    id: ID!
+    name:String
+    description:String
+}
+type Mutation{
+    createEntry(id: ID!, name:String, description: String): Entry
+}

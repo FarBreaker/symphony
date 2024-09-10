@@ -1,8 +1,12 @@
 module.exports = {
   testEnvironment: 'node',
-  roots: ['<rootDir>/test'],
-  testMatch: ['**/*.test.ts'],
+  roots: ['<rootDir>'],
+  testMatch: ['**/*.e2e.ts'],
   transform: {
-    '^.+\\.tsx?$': 'ts-jest'
+    '^.+\\.tsx?$': 'ts-jest',
+  },
+  setupFiles: ['dotenv/config'],
+  moduleNameMapper: {
+    'ˆ@functions/(.*)': '<rootDir>/stateless/functions/$1',
   }
 };
