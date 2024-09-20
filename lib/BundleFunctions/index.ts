@@ -2,13 +2,14 @@
 
 import { IFunction, Runtime, Tracing } from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
-import { CfnResource } from "aws-cdk-lib";
+import { CfnResource, Duration } from "aws-cdk-lib";
 import { Architecture } from "aws-cdk-lib/aws-lambda";
 import {
 	NodejsFunction,
 	NodejsFunctionProps,
 	OutputFormat,
 } from "aws-cdk-lib/aws-lambda-nodejs";
+
 
 export const enum LambdaProfile {
 	PERFORMANCE = "performance",
@@ -19,19 +20,62 @@ export const enum LambdaStage {
 	PRODUCTION = "prod",
 }
 
-interface FunctionsProps extends NodejsFunctionProps {
+interface BundleFunctionProps extends Pick<NodejsFunctionProps, 'entry'|'environment'|'handler'|'timeout' > {
+	/**
+	 * The entry index
+	 */
 	entry: string;
+	/**
+	 * Lambda custom name
+	 */
 	lambdaDefinition: string;
-	tracing?: Tracing;
-	environment?: { [key: string]: string };
+	/**
+	 * The Lambda profile that can either be PERFORMANCE or COMPATIBILITY
+	 */
 	profile: LambdaProfile;
-	stage?: LambdaStage;
-}
+	/**
+	 * Lambda Stage
+	 */
+	stage: LambdaStage;
+	/**
+	 * Handler string name
+	 */
+	handler:string;
+	/**
+	 * Environment Variables to be passed
+	 */
+	environment?: { [key: string]: string };
+	/**
+	 * Timeout in seconds
+	 */
+	timeout: Duration;
 
+}
+type FixedBundleFunctionProps = Omit<NodejsFunctionProps,'entry'>
+
+/**
+ * A Node.js Lambda Function bundled using esbuild, use it to deploy Node 20.x function with the compatibility mode or LLRT Latest function with performance mode
+ */
 export class BundleFunctions extends Construct {
 	public function: IFunction;
-	constructor(scope: Construct, id: string, props: FunctionsProps) {
+	constructor(scope: Construct, id: string, props: BundleFunctionProps) {
 		super(scope, id);
+
+		const fixedProps: FixedBundleFunctionProps={
+			memorySize: 1024,
+			functionName: `${props.profile}-${props.stage}-${props.lambdaDefinition}`,
+			bundling:{
+				banner:"import { createRequire } from 'module';const require = createRequire(import.meta.url);",
+						minify: true,
+						format: OutputFormat.ESM,
+						esbuildArgs:{
+							"--tree-shaking":true
+						},
+						sourceMap: true,
+						externalModules: ["@aws-sdk/*"],
+			}
+		}
+
 		if (props.profile === LambdaProfile.PERFORMANCE) {
 			this.function = new ExperimentalLLRTFunction(
 				this,
@@ -53,16 +97,8 @@ export class BundleFunctions extends Construct {
 				}`,
 				{
 					...props,
-					functionName: `${props.profile}-${props.lambdaDefinition}-${
-						props.stage ? props.stage : LambdaStage.DEVELOP
-					}`,
+					...fixedProps,
 					runtime: Runtime.NODEJS_20_X,
-					bundling: {
-						minify: true,
-						sourceMap: true,
-						externalModules: ["@aws-sdk/*"],
-						format: OutputFormat.ESM,
-					},
 				}
 			);
 		}
@@ -86,10 +122,14 @@ export class ExperimentalLLRTFunction extends NodejsFunction {
 			version == "latest"
 				? `https://github.com/awslabs/llrt/releases/latest/download/llrt-lambda-${arch}.zip`
 				: `https://github.com/awslabs/llrt/releases/download/${version}/llrt-lambda-${arch}.zip`;
-
 		super(scope, id, {
 			...props,
+			memorySize: 1024,
 			bundling: {
+				esbuildArgs:{
+					"--tree-shaking":true
+				},
+				banner:"import { createRequire } from 'module';const require = createRequire(import.meta.url);",
 				target: "es2020",
 				format: OutputFormat.ESM,
 				minify: true,
@@ -98,12 +138,12 @@ export class ExperimentalLLRTFunction extends NodejsFunction {
 					afterBundling: (i, o) => [
 						// Download llrt binary from GitHub release and cache it
 						`if [ ! -e ${i}/.tmp/${arch}/bootstrap ]; then
-              mkdir -p ${i}/.tmp/${arch}
-              cd ${i}/.tmp/${arch}
-              curl -L -o llrt_temp.zip ${binaryUrl}
-              unzip llrt_temp.zip
-              rm -rf llrt_temp.zip
-             fi`,
+            mkdir -p ${i}/.tmp/${arch}
+            cd ${i}/.tmp/${arch}
+            curl -L -o llrt_temp.zip ${binaryUrl}
+            unzip llrt_temp.zip
+            rm -rf llrt_temp.zip
+            fi`,
 						`cp ${i}/.tmp/${arch}/bootstrap ${o}/`,
 					],
 					beforeInstall: (_i, _o) => [],

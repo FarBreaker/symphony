@@ -2,34 +2,26 @@
 
 import { Construct } from "constructs";
 import { EnvironmentConfig } from "../environment-config";
-import { CfnOutput, RemovalPolicy, Stack } from "aws-cdk-lib";
-import { AttributeType, TableV2 } from "aws-cdk-lib/aws-dynamodb";
-import { Stage } from "types";
+import { Duration, Stack } from "aws-cdk-lib";
+
 import {
 	BundleFunctions,
 	LambdaProfile,
-	LambdaStage,
 } from "../lib/BundleFunctions";
 import { Bucket } from "aws-cdk-lib/aws-s3";
-import { GraphqlApi, IGraphqlApi } from "aws-cdk-lib/aws-appsync";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 
 interface StatelessStackProps extends EnvironmentConfig {
 	bucket: Bucket;
-	graphqlAPiId: string;
 }
 
 export class StatelessStack extends Stack {
 	private bucket: Bucket;
-	private graphql : IGraphqlApi;
 	constructor(scope: Construct, id: string, props: StatelessStackProps) {
 		super(scope, id, props);
 
-		const { bucket,graphqlAPiId } = props;
+		const { bucket } = props;
 		this.bucket = bucket;
-
-		this.graphql = GraphqlApi.fromGraphqlApiAttributes(this, `${props.stageName}-rebound-gql`,{
-			graphqlApiId: graphqlAPiId
-		})
 
 		
 		const lambdaTestLLRT = new BundleFunctions(
@@ -40,6 +32,7 @@ export class StatelessStack extends Stack {
 				entry: "./stateless/functions/test/index.ts",
 				profile: props.defaultLambdaProfile,
 				stage: props.lambdaStage,
+				timeout: Duration.minutes(3),
 				environment: {
 					BUCKET_NAME: this.bucket.bucketName,
 				},
@@ -54,13 +47,14 @@ export class StatelessStack extends Stack {
 				entry: "./stateless/functions/test/index.ts",
 				profile: LambdaProfile.COMPATIBILITY,
 				stage: props.lambdaStage,
+				timeout: Duration.minutes(3),
 				environment: {
 					BUCKET_NAME: this.bucket.bucketName,
 				},
 				handler:"index.testFunction"
 			}
 		);
-		this.graphql.addLambdaDataSource('lambdaTestNODE',lambdaTestNODE.function)
+
 
 		this.bucket.grantReadWrite(lambdaTestLLRT.function);
 		this.bucket.grantReadWrite(lambdaTestNODE.function);

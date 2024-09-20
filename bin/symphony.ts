@@ -2,12 +2,17 @@
 /** @format */
 
 import "source-map-support/register";
-import * as cdk from "aws-cdk-lib";
 import { StatefulStack } from "../stateful/stateful-stack";
 import { environments } from "../environments";
 import { StatelessStack } from "../stateless/stateless-stack";
+import { Aspects, App} from "aws-cdk-lib"
+import { LambdaRule } from "../lib/Aspects/LambdaRule";
 
-const app = new cdk.App();
+
+const app = new App();
+
+Aspects.of(app).add(new LambdaRule())
+
 
 const devStatefulStack = new StatefulStack(
 	app,
@@ -22,6 +27,5 @@ const devStatelessStack = new StatelessStack(
 	{
 		...environments.develop,
 		bucket: devStatefulStack.Bucket,
-		graphqlAPiId: devStatefulStack.qglApiId,
 	}
 );
