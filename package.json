@@ -16,21 +16,21 @@
 		"test:e2e:watch": "jest --config ./jest.config.e2e.js --watch --detectOpenHandles --runInBand"
 	},
 	"devDependencies": {
-		"@types/jest": "^29.5.12",
-		"@types/node": "20.14.9",
-		"aws-cdk": "^2.151.0",
-		"aws-sdk": "^2.1685.0",
-		"cdk-nag": "^2.28.195",
-		"esbuild": "^0.23.1",
+		"@types/jest": "^29.5.13",
+		"@types/node": "22.7.4",
+		"aws-cdk": "^2.161.1",
+		"aws-sdk": "^2.1691.0",
+		"cdk-nag": "^2.28.196",
+		"esbuild": "^0.24.0",
 		"jest": "^29.7.0",
-		"ts-jest": "^29.1.5",
+		"ts-jest": "^29.2.5",
 		"ts-node": "^10.9.2",
-		"typedoc": "^0.26.6",
-		"typescript": "~5.5.3"
+		"typedoc": "^0.26.8",
+		"typescript": "~5.6.2"
 	},
 	"dependencies": {
-		"aws-cdk-lib": "2.151.0",
-		"constructs": "^10.0.0",
+		"aws-cdk-lib": "2.161.1",
+		"constructs": "^10.3.0",
 		"source-map-support": "^0.5.21"
 	}
 }
