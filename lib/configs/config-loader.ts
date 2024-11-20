@@ -7,6 +7,7 @@ import { RemovalPolicy } from "aws-cdk-lib";
 import { LambdaProfile } from "../constructs/NodeFunction/index";
 import dev from "./dev.json" assert { type: "json" };
 import prod from "./prod.json" assert { type: "json" };
+import { CorsHttpMethod } from "aws-cdk-lib/aws-apigatewayv2";
 
 /**
  * Environment configuration interface for account and region
@@ -29,6 +30,8 @@ export interface EnvironmentConfig {
 	compute: ComputEnv;
 	/** Storage resource configurations */
 	persistance: PersistanceEnv;
+	/** Network resource configurations */
+	network: NetworkEnv;
 }
 
 /**
@@ -76,6 +79,18 @@ interface BucketEnv {
 	name: string;
 	removalPolicy: RemovalPolicy;
 	autoDeleteObjects: boolean;
+}
+
+interface NetworkEnv {
+	apigw?: ApiGwEnv;
+}
+
+interface ApiGwEnv {
+	corsPreflight: {
+		allowOrigins: string[];
+		allowHeaders: string[];
+		allowMethods: CorsHttpMethod[];
+	};
 }
 
 /**

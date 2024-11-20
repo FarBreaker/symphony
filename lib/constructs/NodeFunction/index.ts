@@ -9,6 +9,7 @@ import {
 	NodejsFunctionProps,
 	OutputFormat,
 } from "aws-cdk-lib/aws-lambda-nodejs";
+import { HttpLambdaIntegration } from "aws-cdk-lib/aws-apigatewayv2-integrations";
 
 /**
  * Enum representing the Lambda function profile type
@@ -48,6 +49,11 @@ interface BundleFunctionProps
 	 */
 	environment?: { [key: string]: string };
 	/**
+	 * Whether to enable http integration when true http is enabled and the integration is created
+	@default false 
+	*/
+	httpIntegration?: boolean;
+	/**
 	 * Timeout in seconds
 	 */
 	timeout: Duration;
@@ -59,12 +65,13 @@ type FixedBundleFunctionProps = Omit<NodejsFunctionProps, "entry">;
  */
 export class BundleFunctions extends Construct {
 	public function: IFunction;
+	public integration: HttpLambdaIntegration;
 	constructor(scope: Construct, id: string, props: BundleFunctionProps) {
 		super(scope, id);
 
 		const fixedProps: FixedBundleFunctionProps = {
 			memorySize: 1024,
-			functionName: `${props.profile}-${props.lambdaDefinition}`,
+			functionName: `${props.lambdaDefinition}-${props.profile}`,
 			bundling: {
 				banner:
 					"import { createRequire } from 'module';const require = createRequire(import.meta.url);",
@@ -84,7 +91,7 @@ export class BundleFunctions extends Construct {
 				`${props.profile}-${props.lambdaDefinition}`,
 				{
 					...props,
-					functionName: `${props.profile}-${props.lambdaDefinition}`,
+					functionName: `${props.lambdaDefinition}-${props.profile}`,
 				}
 			);
 		} else {
@@ -96,6 +103,12 @@ export class BundleFunctions extends Construct {
 					...fixedProps,
 					runtime: Runtime.NODEJS_20_X,
 				}
+			);
+		}
+		if (props.httpIntegration) {
+			this.integration = new HttpLambdaIntegration(
+				`${props.lambdaDefinition}-integration`,
+				this.function
 			);
 		}
 	}

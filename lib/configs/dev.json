@@ -20,5 +20,14 @@
 			"removalPolicy": "destroy",
 			"autoDeleteObjects": true
 		}
+	},
+	"network": {
+		"apigw": {
+			"corsPreflight": {
+				"allowMethods": ["GET", "POST"],
+				"allowOrigins": ["*"],
+				"allowHeaders": ["*"]
+			}
+		}
 	}
 }
