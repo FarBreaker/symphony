@@ -63,7 +63,7 @@ type FixedBundleFunctionProps = Omit<NodejsFunctionProps, "entry">;
 /**
  * A Node.js Lambda Function bundled using esbuild, use it to deploy Node 20.x function with the compatibility mode or LLRT Latest function with performance mode
  */
-export class BundleFunctions extends Construct {
+export class EnhancedLambda extends Construct {
 	public function: IFunction;
 	public integration: HttpLambdaIntegration;
 	constructor(scope: Construct, id: string, props: BundleFunctionProps) {

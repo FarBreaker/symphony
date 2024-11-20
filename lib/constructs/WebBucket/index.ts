@@ -8,10 +8,6 @@ import { Construct } from "constructs";
 interface WebBucketProps
 	extends Pick<BucketProps, "removalPolicy" | "bucketName"> {
 	/**
-	 * The Stage Name
-	 */
-	stageName: string;
-	/**
 	 * The removal policy for the bucket
 	 */
 	removalPolicy: RemovalPolicy;

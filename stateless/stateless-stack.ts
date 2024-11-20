@@ -3,7 +3,7 @@
 import { Construct } from "constructs";
 import { EnvironmentConfig } from "../lib/configs/config-loader";
 import { Duration, Stack } from "aws-cdk-lib";
-import { BundleFunctions, LambdaProfile } from "../lib/constructs/NodeFunction";
+import { EnhancedLambda, LambdaProfile } from "../lib/constructs/NodeFunction";
 import { Bucket, IBucket } from "aws-cdk-lib/aws-s3";
 import { Gateway } from "../lib/constructs/Gateway";
 import { HttpMethod } from "aws-cdk-lib/aws-apigatewayv2";
@@ -21,7 +21,7 @@ export class StatelessStack extends Stack {
 			persistance.bucket.name
 		);
 
-		const lambdaTestLLRT = new BundleFunctions(
+		const lambdaTestLLRT = new EnhancedLambda(
 			this,
 			`${props?.prefix}-llrt-lambda`,
 			{
@@ -36,7 +36,7 @@ export class StatelessStack extends Stack {
 				handler: "index.testFunction",
 			}
 		);
-		const lambdaTestNODE = new BundleFunctions(
+		const lambdaTestNODE = new EnhancedLambda(
 			this,
 			`${props?.prefix}-node-lambda`,
 			{
