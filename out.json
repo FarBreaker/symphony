@@ -1,8 +1,6 @@
 {
-  "Stateful-develop": {
-    "ExportsOutputRefdevelopBucketD1970BE037A6CDBA": "develop-symphony-bucket",
-    "TableName": "develop-symphony-table",
-    "BucketName": "develop-symphony-bucket",
-    "ExportsOutputFnGetAttdevelopBucketD1970BE0ArnA522CA4D": "arn:aws:s3:::develop-symphony-bucket"
+  "dev-symphony-stateful": {
+    "TableName": "dev-symphony-table",
+    "BucketName": "dev-symphony-bucket"
   }
 }

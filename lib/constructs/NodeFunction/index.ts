@@ -10,17 +10,22 @@ import {
 	OutputFormat,
 } from "aws-cdk-lib/aws-lambda-nodejs";
 
-
+/**
+ * Enum representing the Lambda function profile type
+ * @enum {string}
+ * @property {string} PERFORMANCE - Profile optimized for performance using LLRT runtime
+ * @property {string} COMPATIBILITY - Profile using standard Node.js runtime for compatibility
+ */
 export const enum LambdaProfile {
 	PERFORMANCE = "performance",
 	COMPATIBILITY = "compatibility",
 }
-export const enum LambdaStage {
-	DEVELOP = "dev",
-	PRODUCTION = "prod",
-}
 
-interface BundleFunctionProps extends Pick<NodejsFunctionProps, 'entry'|'environment'|'handler'|'timeout' > {
+interface BundleFunctionProps
+	extends Pick<
+		NodejsFunctionProps,
+		"entry" | "environment" | "handler" | "timeout"
+	> {
 	/**
 	 * The entry index
 	 */
@@ -33,14 +38,11 @@ interface BundleFunctionProps extends Pick<NodejsFunctionProps, 'entry'|'environ
 	 * The Lambda profile that can either be PERFORMANCE or COMPATIBILITY
 	 */
 	profile: LambdaProfile;
-	/**
-	 * Lambda Stage
-	 */
-	stage: LambdaStage;
+
 	/**
 	 * Handler string name
 	 */
-	handler:string;
+	handler: string;
 	/**
 	 * Environment Variables to be passed
 	 */
@@ -49,9 +51,8 @@ interface BundleFunctionProps extends Pick<NodejsFunctionProps, 'entry'|'environ
 	 * Timeout in seconds
 	 */
 	timeout: Duration;
-
 }
-type FixedBundleFunctionProps = Omit<NodejsFunctionProps,'entry'>
+type FixedBundleFunctionProps = Omit<NodejsFunctionProps, "entry">;
 
 /**
  * A Node.js Lambda Function bundled using esbuild, use it to deploy Node 20.x function with the compatibility mode or LLRT Latest function with performance mode
@@ -61,40 +62,35 @@ export class BundleFunctions extends Construct {
 	constructor(scope: Construct, id: string, props: BundleFunctionProps) {
 		super(scope, id);
 
-		const fixedProps: FixedBundleFunctionProps={
+		const fixedProps: FixedBundleFunctionProps = {
 			memorySize: 1024,
-			functionName: `${props.profile}-${props.stage}-${props.lambdaDefinition}`,
-			bundling:{
-				banner:"import { createRequire } from 'module';const require = createRequire(import.meta.url);",
-						minify: true,
-						format: OutputFormat.ESM,
-						esbuildArgs:{
-							"--tree-shaking":true
-						},
-						sourceMap: true,
-						externalModules: ["@aws-sdk/*"],
-			}
-		}
+			functionName: `${props.profile}-${props.lambdaDefinition}`,
+			bundling: {
+				banner:
+					"import { createRequire } from 'module';const require = createRequire(import.meta.url);",
+				minify: true,
+				format: OutputFormat.ESM,
+				esbuildArgs: {
+					"--tree-shaking": true,
+				},
+				sourceMap: true,
+				externalModules: ["@aws-sdk/*"],
+			},
+		};
 
 		if (props.profile === LambdaProfile.PERFORMANCE) {
-			this.function = new ExperimentalLLRTFunction(
+			this.function = new LLRTNodeFunction(
 				this,
-				`${props.profile}-${props.lambdaDefinition}-${
-					props.stage ? props.stage : LambdaStage.DEVELOP
-				}`,
+				`${props.profile}-${props.lambdaDefinition}`,
 				{
 					...props,
-					functionName: `${props.profile}-${props.lambdaDefinition}-${
-						props.stage ? props.stage : LambdaStage.DEVELOP
-					}`,
+					functionName: `${props.profile}-${props.lambdaDefinition}`,
 				}
 			);
 		} else {
 			this.function = new NodejsFunction(
 				this,
-				`${props.profile}-${props.lambdaDefinition}-${
-					props.stage ? props.stage : LambdaStage.DEVELOP
-				}`,
+				`${props.profile}-${props.lambdaDefinition}`,
 				{
 					...props,
 					...fixedProps,
@@ -114,7 +110,7 @@ export interface LlrtFunctionProps extends NodejsFunctionProps {
 	readonly llrtVersion?: string;
 }
 
-export class ExperimentalLLRTFunction extends NodejsFunction {
+export class LLRTNodeFunction extends NodejsFunction {
 	constructor(scope: Construct, id: string, props: LlrtFunctionProps) {
 		const version = props.llrtVersion ?? "latest";
 		const arch = props.architecture == Architecture.ARM_64 ? "arm64" : "x64";
@@ -126,10 +122,11 @@ export class ExperimentalLLRTFunction extends NodejsFunction {
 			...props,
 			memorySize: 1024,
 			bundling: {
-				esbuildArgs:{
-					"--tree-shaking":true
+				esbuildArgs: {
+					"--tree-shaking": true,
 				},
-				banner:"import { createRequire } from 'module';const require = createRequire(import.meta.url);",
+				banner:
+					"import { createRequire } from 'module';const require = createRequire(import.meta.url);",
 				target: "es2020",
 				format: OutputFormat.ESM,
 				minify: true,

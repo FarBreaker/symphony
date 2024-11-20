@@ -2,7 +2,7 @@
 
 import { Region, Stage } from "./types";
 import { EnvironmentConfig } from "./environment-config";
-import { LambdaProfile, LambdaStage } from "lib/BundleFunctions";
+import { LambdaProfile, LambdaStage } from "lib/constructs/NodeFunction";
 
 export const environments: Record<Stage, EnvironmentConfig> = {
 	[Stage.develop]: {

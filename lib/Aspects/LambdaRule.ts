@@ -1,18 +1,20 @@
-import { Annotations,IAspect } from "aws-cdk-lib";
+/** @format */
+
+import { Annotations, IAspect } from "aws-cdk-lib";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { IConstruct } from "constructs";
-import { BundleFunctions } from "../BundleFunctions";
+import { BundleFunctions } from "../constructs/NodeFunction";
 
+export class LambdaRule implements IAspect {
+	constructor() {}
 
-
-export class LambdaRule implements IAspect{
-    constructor () {}
-
-    public visit(node: IConstruct): void {
-        if(node instanceof NodejsFunction){
-            if(!(node.node.scope instanceof BundleFunctions)){
-                Annotations.of(node).addError("Lambda construct used directly. Please use BundleFunction construct instead");
-            }
-        }
-    }
+	public visit(node: IConstruct): void {
+		if (node instanceof NodejsFunction) {
+			if (!(node.node.scope instanceof BundleFunctions)) {
+				Annotations.of(node).addError(
+					"Lambda construct used directly. Please use BundleFunction construct instead"
+				);
+			}
+		}
+	}
 }

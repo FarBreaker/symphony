@@ -48,9 +48,9 @@ export class WebBucket extends Construct {
 			...props,
 		});
 		this.originAccessIdentity = new OriginAccessIdentity(this, id + "OAI", {
-            comment:`Origin Access Identity fro ${id} web bucket`
-        });
-        this.bucket.grantRead(this.originAccessIdentity);
-        this.bucket.applyRemovalPolicy(RemovalPolicy.DESTROY)
+			comment: `Origin Access Identity fro ${id} web bucket`,
+		});
+		this.bucket.grantRead(this.originAccessIdentity);
+		this.bucket.applyRemovalPolicy(RemovalPolicy.DESTROY);
 	}
 }
